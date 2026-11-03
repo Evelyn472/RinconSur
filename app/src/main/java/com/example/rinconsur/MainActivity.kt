@@ -8,6 +8,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,22 +45,43 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = navController,
                         startDestination = "login",
+
                         enterTransition = {
-                            fadeIn(tween(300)) +
-                                    slideInHorizontally(tween(300)) { it / 8 }
+                            fadeIn(tween(450)) +
+                                    slideInHorizontally(tween(450)) { it / 3 } +
+                                    scaleIn(
+                                        initialScale = 0.90f,
+                                        animationSpec = tween(450)
+                                    )
                         },
+
                         exitTransition = {
-                            fadeOut(tween(300)) +
-                                    slideOutHorizontally(tween(300)) { -it / 8 }
+                            fadeOut(tween(450)) +
+                                    slideOutHorizontally(tween(450)) { -it / 3 } +
+                                    scaleOut(
+                                        targetScale = 0.95f,
+                                        animationSpec = tween(450)
+                                    )
                         },
+
                         popEnterTransition = {
-                            fadeIn(tween(300)) +
-                                    slideInHorizontally(tween(300)) { -it / 8 }
+                            fadeIn(tween(450)) +
+                                    slideInHorizontally(tween(450)) { -it / 3 } +
+                                    scaleIn(
+                                        initialScale = 0.90f,
+                                        animationSpec = tween(450)
+                                    )
                         },
+
                         popExitTransition = {
-                            fadeOut(tween(300)) +
-                                    slideOutHorizontally(tween(300)) { it / 8 }
+                            fadeOut(tween(450)) +
+                                    slideOutHorizontally(tween(450)) { it / 3 } +
+                                    scaleOut(
+                                        targetScale = 0.95f,
+                                        animationSpec = tween(450)
+                                    )
                         }
+
                     ) {
 
                         composable("login") {

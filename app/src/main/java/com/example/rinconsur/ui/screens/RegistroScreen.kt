@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.rinconsur.data.local.movimiento.MovimientoEntity
 import com.example.rinconsur.viewmodel.MovimientoViewModel
+import kotlinx.coroutines.launch
 
 private val VerdeRincon = Color(0xFF075B46)
 private val VerdeClaro = Color(0xFFE2F4EA)
@@ -60,6 +62,7 @@ fun RegistroScreen(
     var acompanantes by remember { mutableIntStateOf(0) }
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -329,15 +332,26 @@ fun RegistroScreen(
                             fechaHora = System.currentTimeMillis()
                         )
 
-                        movimientoViewModel.guardarMovimiento(nuevoMovimiento)
+                        scope.launch {
+                            try {
+                                movimientoViewModel.guardarMovimiento(nuevoMovimiento)
 
-                        Toast.makeText(
-                            context,
-                            "Movimiento guardado correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                                Toast.makeText(
+                                    context,
+                                    "Movimiento guardado correctamente",
+                                    Toast.LENGTH_SHORT
+                                ).show()
 
-                        onGuardarClick()
+                                onGuardarClick()
+
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Error al guardar el movimiento: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 },
                 modifier = Modifier

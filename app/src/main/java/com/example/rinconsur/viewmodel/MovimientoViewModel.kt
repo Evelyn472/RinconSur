@@ -11,11 +11,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 
 class MovimientoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -38,11 +38,18 @@ class MovimientoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun guardarMovimiento(movimiento: MovimientoEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
+    suspend fun guardarMovimiento(
+        movimiento: MovimientoEntity
+    ): MovimientoEntity {
+
+        val movimientoGuardado = withContext(Dispatchers.IO) {
             val id = repository.insertar(movimiento)
-            ultimoMovimiento = movimiento.copy(id = id.toInt())
+            movimiento.copy(id = id.toInt())
         }
+
+        ultimoMovimiento = movimientoGuardado
+
+        return movimientoGuardado
     }
 
     fun actualizarMovimiento(movimiento: MovimientoEntity) {
