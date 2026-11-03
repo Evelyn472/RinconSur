@@ -1,30 +1,25 @@
 
 package com.example.rinconsur.ui.screens
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.rinconsur.viewmodel.UsuarioViewModel
 
 private val VerdeRincon = Color(0xFF075B46)
 private val VerdeClaro = Color(0xFFDDF5E9)
@@ -36,26 +31,36 @@ private val AmarilloResumen = Color(0xFFF5B52E)
 fun HomeScreen(
     onRegistrarClick: () -> Unit,
     onRegistrosClick: () -> Unit,
-    onResumenClick: () -> Unit
+    onResumenClick: () -> Unit,
+    onAdministrarUsuariosClick: () -> Unit,
+    onCrearTrabajadorClick: () -> Unit,
+    onCerrarSesionClick: () -> Unit,
+    usuarioViewModel: UsuarioViewModel
 ) {
+    val nombreUsuario = usuarioViewModel.usuarioActual
+    val esAdministrador = usuarioViewModel.esAdministrador()
+
+    val fotoPath = remember(nombreUsuario) {
+        if (nombreUsuario.isNotBlank()) usuarioViewModel.obtenerFotoUsuario(nombreUsuario) else null
+    }
+
+    val fotoBitmap = remember(fotoPath) {
+        fotoPath?.let { BitmapFactory.decodeFile(it)?.asImageBitmap() }
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "CENTRO COMERCIAL",
-                            fontSize = 10.sp
-                        )
-                        Text(
-                            text = "RINCÓN SUR",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = VerdeRincon
-                        )
-                    }
+            TopAppBar(title = {
+                Column {
+                    Text("CENTRO COMERCIAL", fontSize = 10.sp)
+                    Text(
+                        "RINCÓN SUR",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VerdeRincon
+                    )
                 }
-            )
+            })
         },
         bottomBar = {
             Row(
@@ -76,11 +81,51 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(Color(0xFFF8FAF9))
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.Center
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (fotoBitmap != null) {
+                    Image(
+                        bitmap = fotoBitmap,
+                        contentDescription = "Fotografía del usuario",
+                        modifier = Modifier.size(64.dp).clip(CircleShape)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(VerdeClaro),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("RS", color = VerdeRincon, fontSize = 22.sp)
+                    }
+                }
+
+                Column {
+                    Text(
+                        if (esAdministrador) "Administrador" else "Trabajador",
+                        fontSize = 13.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        nombreUsuario,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                text = "¡Bienvenido!",
+                "¡Bienvenido!",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -89,37 +134,53 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Registra y consulta los movimientos de nuestra tienda.",
+                "Registra y consulta los movimientos de nuestra tienda.",
                 fontSize = 16.sp,
                 color = Color.DarkGray
             )
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            TarjetaMenu(
-                titulo = "Registrar movimiento",
-                colorFondo = VerdeClaro,
-                colorTexto = VerdeRincon,
-                onClick = onRegistrarClick
-            )
-
+            TarjetaMenu("Registrar movimiento", VerdeClaro, VerdeRincon, onRegistrarClick)
             Spacer(modifier = Modifier.height(14.dp))
 
-            TarjetaMenu(
-                titulo = "Ver registros",
-                colorFondo = Color(0xFFE5EFFF),
-                colorTexto = AzulRegistros,
-                onClick = onRegistrosClick
-            )
-
+            TarjetaMenu("Ver registros", Color(0xFFE5EFFF), AzulRegistros, onRegistrosClick)
             Spacer(modifier = Modifier.height(14.dp))
 
-            TarjetaMenu(
-                titulo = "Resumen",
-                colorFondo = Color(0xFFFFF2D5),
-                colorTexto = AmarilloResumen,
-                onClick = onResumenClick
-            )
+            TarjetaMenu("Resumen", Color(0xFFFFF2D5), AmarilloResumen, onResumenClick)
+
+            if (esAdministrador) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Administración", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(14.dp))
+
+                TarjetaMenu(
+                    "Administrar trabajadores",
+                    Color(0xFFF0E8FF),
+                    Color(0xFF7040A0),
+                    onAdministrarUsuariosClick
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                TarjetaMenu(
+                    "Registrar trabajador",
+                    Color(0xFFFFE8E8),
+                    Color(0xFFB3261E),
+                    onCrearTrabajadorClick
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            OutlinedButton(
+                onClick = onCerrarSesionClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cerrar sesión", color = Color(0xFFB3261E))
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -133,32 +194,22 @@ private fun TarjetaMenu(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(88.dp),
+        modifier = Modifier.fillMaxWidth().height(88.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = colorFondo
-        )
+        colors = CardDefaults.cardColors(containerColor = colorFondo)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = titulo,
+                titulo,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorTexto
             )
-            Text(
-                text = "›",
-                fontSize = 32.sp,
-                color = colorTexto
-            )
+            Text("›", fontSize = 32.sp, color = colorTexto)
         }
     }
 }
